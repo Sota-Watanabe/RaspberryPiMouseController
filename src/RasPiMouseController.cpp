@@ -135,21 +135,40 @@ RTC::ReturnCode_t RasPiMouseController::onExecute(RTC::UniqueId ec_id)
 		m_target_pointIn.read();
 		long distance = abs(m_target_point.data);
 		double rotate_velocity;
-		if (distance == 99)rotate_velocity = 0;
+		if (distance == 999)rotate_velocity = 0;
 		else if (distance > 30)rotate_velocity = 0.8;
 		else if (distance > 20) rotate_velocity = 0.3;
-		else if (distance > 10)rotate_velocity = 0.1;
+		else if (distance > 10)rotate_velocity = 0.2;
+		else if (distance > 5)rotate_velocity = 0.1;
 		else if (distance > m_range)rotate_velocity = 0.05;
 		else rotate_velocity = 0;
 
-		if ((distance != 99) && (rotate_velocity == 0)) m_throw_judge.data = true;
-		else m_throw_judge.data = false;
+		if ((distance != 999) && (rotate_velocity == 0)){
+			clock_t nowTime = clock();
+			//std::cout << "margin : " << nowTime - lastTime << std::endl;
+			//std::cout << "nowTime : " <<nowTime<< std::endl;
+			if (lastTime == 0){
+				lastTime = nowTime;
+				//m_throw_judge.data = false;
+			}
+			else {
+				if (nowTime - lastTime > 3000){				//‚ ‚Æ‚Å•ÏX
+					lastTime = 0;
+					m_throw_judge.data = true;
+				}
+			}
+		}
+		else {
+			m_throw_judge.data = false; //Œ©‚Â‚©‚ç‚È‚¢
+			lastTime = 0;
+		}
+
 		setTimestamp(m_throw_judge);
 		m_throw_judgeOut.write();
 
 		if (m_target_point.data > 0)rotate_velocity = rotate_velocity * -1;
 
-		std::cout << "rotate_velocity = " << rotate_velocity << std::endl;
+		//std::cout << "rotate_velocity = " << rotate_velocity << std::endl;
 		m_target_velocity.data.va = rotate_velocity;
 		setTimestamp(m_target_velocity);
 		m_target_velocityOut.write();

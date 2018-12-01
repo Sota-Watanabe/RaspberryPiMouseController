@@ -4,6 +4,7 @@
  * @brief Controll RasPiMouse
  * @date  $Date$
  *
+ * @author Sota Watanabe cy16179@shibaura-it.ac.jp
  * $Id$
  */
 
@@ -36,10 +37,23 @@ using namespace RTC;
 #include <rtm/DataInPort.h>
 #include <rtm/DataOutPort.h>
 
+#include <time.h>
+
+using namespace std;
+
 /*!
  * @class RasPiMouseController
  * @brief Controll RasPiMouse
  *
+ *このコンポーネントはRaspberryPiMouseRTCというコンポーネントに命令を出力するためのコンポーネントである。
+ *詳細としては入力された値によってRaspberryPiMouseRTCに送る値(target_velocity)を変える。この送る値はRaspberryPiMouseが回転する移動量と方向(符号)である。
+ *また999の値が入力としてきた場合は「なし」を意味している。
+ *それ以外の値の場合は移動距離と方向(符号)を意味しているので、if文で条件分岐をし、移動速度を出力として渡す。
+ *その際、移動距離が0であり、値が999でない場合は目的物の正面にあるので三秒以上のその状態の場合、throw_judgeにtrueを渡す
+ *
+ *RTMではじめるロボットアプリ開発 : robot technology middleware / セック著. -- 工学社, 2015. -- (I/O books).
+ *Raspberry Piで学ぶROSロボット入門 / 上田隆一著. -- 日経BP社, 2017.
+ *やさしいPython入門 / 日向俊二著. -- 第2版. -- カットシステム, 2018.
  */
 class RasPiMouseController
   : public RTC::DataFlowComponentBase
@@ -113,6 +127,8 @@ class RasPiMouseController
   // virtual RTC::ReturnCode_t onShutdown(RTC::UniqueId ec_id);
 
   /***
+   * 始まってすぐ動かないようにm_target_velocity.dataをすべて0にし、setTimestampをし、m_target_velocityOutに書き込む
+   *
    *
    * The activated action (Active state entry action)
    * former rtc_active_entry()
@@ -124,8 +140,8 @@ class RasPiMouseController
    * 
    */
    virtual RTC::ReturnCode_t onActivated(RTC::UniqueId ec_id);
-
   /***
+   * onDeactivated時に停止させる
    *
    * The deactivated action (Active state exit action)
    * former rtc_active_exit()
@@ -139,6 +155,10 @@ class RasPiMouseController
    virtual RTC::ReturnCode_t onDeactivated(RTC::UniqueId ec_id);
 
   /***
+   *入力された値によってRaspberryPiMouseRTCに送る値(target_velocity)を変える。この送る値はRaspberryPiMouseが回転する移動量と方向(符号)である。
+   *また999の値が入力としてきた場合は「なし」を意味している。
+   *それ以外の値の場合は移動距離と方向(符号)を意味しているので、if文で条件分岐をし、移動速度を出力として渡す。
+   *その際、移動距離が0であり、値が999でない場合は目的物の正面にあるので三秒以上のその状態の場合、throw_judgeにtrueを渡す
    *
    * The execution action that is invoked periodically
    * former rtc_active_do()
@@ -277,9 +297,8 @@ class RasPiMouseController
 
  private:
   // <rtc-template block="private_attribute">
-  
   // </rtc-template>
-
+	 clock_t lastTime = 0;
   // <rtc-template block="private_operation">
   
   // </rtc-template>
