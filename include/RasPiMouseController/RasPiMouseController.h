@@ -252,6 +252,7 @@ class RasPiMouseController
    * 
    * - Name:  range
    * - DefaultValue: 2
+   * - Range: 中心移動への許容範囲
    */
   int m_range;
 
@@ -261,6 +262,8 @@ class RasPiMouseController
   // <rtc-template block="inport_declare">
   RTC::TimedLong m_target_point;
   /*!
+   * - Type: TimedLong
+   * - Semantics: 指定した場所から赤い物体の距離(右端を50、左端を-50とする)
    */
   InPort<RTC::TimedLong> m_target_pointIn;
   
@@ -271,10 +274,14 @@ class RasPiMouseController
   // <rtc-template block="outport_declare">
   RTC::TimedVelocity2D m_target_velocity;
   /*!
+   * - Type: TimedVelocity2D
+   * - Semantics: RaspberryPiMouseの動く速度と向き
    */
   OutPort<RTC::TimedVelocity2D> m_target_velocityOut;
   RTC::TimedBoolean m_throw_judge;
   /*!
+   * - Type: Timedboolean
+   * - Semantics: 投球許可
    */
   OutPort<RTC::TimedBoolean> m_throw_judgeOut;
   
